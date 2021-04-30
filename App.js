@@ -1,21 +1,75 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { Button, Alert } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import Home from "./screens/Home";
+import Settings from "./screens/Settings";
+import SinglePlayer from "./screens/SinglePlayer";
+import HeadToHead from "./screens/HeadToHead";
+import MainContext from "./contexts/MainContext";
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <MainContext.Provider value={{}}>
+      <MainStack />
+    </MainContext.Provider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function MainStack() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Home"
+          options={{ title: "Home Page" }}
+          component={Home}
+        />
+        <Stack.Screen
+          name="Settings"
+          options={{ title: "Settings Page" }}
+          component={Settings}
+        />
+        <Stack.Screen
+          name="SinglePlayer"
+          options={{ title: "Single Player Page" }}
+          component={SinglePlayer}
+        />
+        <Stack.Screen
+          name="HeadToHead"
+          options={{ title: "Head to Head Page" }}
+          component={HeadToHead}
+          options={({ navigation }) => ({
+            headerLeft: () => null,
+            headerRight: () => (
+              <Button
+                title="End Game"
+                onPress={() => {
+                  Alert.alert(
+                    "End Game",
+                    "Are you sure you want to end the game?",
+                    [
+                      {
+                        text: "Cancel",
+                        onPress: () => {},
+                        style: "cancel",
+                      },
+                      {
+                        text: "OK",
+                        onPress: () => {
+                          navigation.navigate("Home");
+                        },
+                      },
+                    ]
+                  );
+                }}
+              />
+            ),
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
