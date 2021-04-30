@@ -1,14 +1,23 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { useState } from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 import Card from "./../components/Card";
+import { Ionicons } from "@expo/vector-icons";
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-const TestCards = [
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const ALLCARDS = [
   "AceH",
   "AceD",
   "AceC",
@@ -64,21 +73,40 @@ const TestCards = [
 ];
 
 export default function HeadToHead() {
-  const [cards, setCards] = useState([]);
+  const [playedCards, setPlayedCards] = useState([]);
   const [flip, setFlip] = useState(false);
-  const playCard = () => {
-    let deg = getRandomInt(40);
-    if (flip) deg = deg * -1;
-    setFlip(!flip);
-    setCards([
-      ...cards,
-      { type: TestCards[getRandomInt(TestCards.length)], deg: deg },
-    ]);
+  const [isUpperPlayerTurn, setIsUpperPlayerTurn] = useState(true);
+  const [upperPlayerCards, setUpperPlayerCards] = useState([]);
+  const [lowerPlayerCards, setLowerPlayerCards] = useState([]);
+  const handleUpperPlayerPlayCard = () => {
+    if (upperPlayerCards.length >= 1) {
+      let deg = getRandomInt(40);
+      if (flip) deg = deg * -1;
+      setFlip(!flip);
+      setPlayedCards([...playedCards, { type: upperPlayerCards[0], deg: deg }]);
+      setUpperPlayerCards(upperPlayerCards.slice(1));
+      setIsUpperPlayerTurn(false);
+    }
   };
+  const handleLowerPlayerPlayCard = () => {
+    if (lowerPlayerCards.length >= 1) {
+      let deg = getRandomInt(40);
+      if (flip) deg = deg * -1;
+      setFlip(!flip);
+      setPlayedCards([...playedCards, { type: lowerPlayerCards[0], deg: deg }]);
+      setLowerPlayerCards(lowerPlayerCards.slice(1));
+      setIsUpperPlayerTurn(true);
+    }
+  };
+  useEffect(() => {
+    const shuffledCards = shuffle(ALLCARDS);
+    setUpperPlayerCards(shuffledCards.slice(0, ALLCARDS.length / 2));
+    setLowerPlayerCards(shuffledCards.slice(ALLCARDS.length / 2));
+  }, []);
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      {cards.map((card, idx) => {
+      {playedCards.map((card, idx) => {
         return (
           <Card
             key={card + idx}
@@ -89,11 +117,25 @@ export default function HeadToHead() {
           />
         );
       })}
-      <TouchableOpacity style={styles.upperContainer} onPress={playCard}>
+      <TouchableOpacity
+        style={styles.upperContainer}
+        onPress={handleUpperPlayerPlayCard}
+      >
         <Card type="BlueB" scale={100} style={styles.upperPlayer} />
+        <Text>{upperPlayerCards.length} cards remaining</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.lowerContainer} onPress={playCard}>
+      <TouchableOpacity
+        style={styles.lowerContainer}
+        onPress={handleLowerPlayerPlayCard}
+      >
+        {isUpperPlayerTurn ? (
+          <Ionicons name="caret-up-sharp" size={32} color="black" />
+        ) : (
+          <Ionicons name="caret-down-sharp" size={32} color="black" />
+        )}
+
         <Card type="GreenB" scale={100} style={styles.lowerPlayer} />
+        <Text>{lowerPlayerCards.length} cards remaining</Text>
       </TouchableOpacity>
     </View>
   );
